@@ -1,0 +1,59 @@
+const About = () => {
+    return (
+        <section id="about" className="py-12">
+            <div className="">
+                {/* First Section - About Us with Image Background */}
+                <div
+                    className="relative bg-cover bg-center bg-no-repeat flex items-center justify-center p-6 sm:p-8 lg:p-12 min-h-[70vh]"
+                    style={{
+                        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.75)), url('https://images.unsplash.com/photo-1542744173-8e7e53415bb0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')`
+                    }}
+                >
+                    <div className="text-primary w-full max-w-7xl mx-auto">
+                        <p className="text-xs sm:text-sm md:text-base lg:text-l xl:text-lg font-medium tracking-wide uppercase">
+                            ABOUT US
+                        </p>
+                        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-bold leading-none">
+                            PANATRADE PRESTASI
+                        </h2>
+                        <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl leading-relaxed">
+                            Panatrade Group has been creating sports footwear and apparel for more than 30 years. We believe sport can be the catalyst for positive change and the inspiration for a more active, healthy lifestyle. Panatrade products are designed to help our customers reach their full potential. Over many years, we have steadily established ourselves in the sports retail industry, strengthening our market position. This growth has been fueled by expansion into modern, general and digital trade channels.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Second Section - Vision and Mission with White Background */}
+                <div className="p-6 sm:p-8 lg:p-12 min-h-[70vh] flex items-center justify-center">
+                    <div className="w-full max-w-7xl mx-auto">
+                        <div className="">
+                            {/* Vision Section */}
+                            <div>
+                                <p className="text-xs sm:text-sm md:text-base lg:text-l xl:text-lg font-medium tracking-wide text-gray-800 uppercase">
+                                    INSPIRE GREATNESS
+                                </p>
+                                <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-bold leading-none text-gray-900">
+                                    OUR VISION
+                                </h3>
+                                <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl leading-relaxed text-gray-700">
+                                    A world where sports are the inspiration for positive change. Where communities come together in friendly competition and nations unite to support their best and brightest.
+                                </p>
+                            </div>
+
+                            {/* Mission Section */}
+                            <div>
+                                <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-bold leading-none text-gray-900">
+                                    OUR MISSION
+                                </h3>
+                                <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl leading-relaxed text-gray-700">
+                                    To impact lives through sports. From playing fields and schoolyards to the bright lights of the big leagues, our mission is to deliver world-class products to our consumers.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    )
+}
+
+export default About
