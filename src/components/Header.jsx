@@ -157,12 +157,12 @@ const Header = () => {
                 boxShadow: getBoxShadow()
             }}
         >
-            <div className="flex justify-between items-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16">
+            <div className="flex justify-between items-center max-w-[1200px] mx-auto px-[3%] xl:px-0 py-[20px]">
                 {/* Logo/Brand */}
                 <div className="flex-shrink-0">
                     <Link
                         to="/"
-                        className="text-[12px] sm:text-[26px] font-bold text-white hover:text-gray-300 transition-all duration-300 ease-out transform hover:scale-105 uppercase"
+                        className="text-[12px] sm:text-[26px] font-[900] text-white hover:text-gray-300 transition-all duration-300 ease-out transform hover:scale-105 uppercase tracking-[2px]"
                         onClick={() => setIsMenuOpen(false)}
                     >
                         Panatrade Prestasi
@@ -170,12 +170,12 @@ const Header = () => {
                 </div>
 
                 {/* Desktop Navigation */}
-                <nav className="hidden md:flex space-x-4">
+                <nav className="hidden md:flex mx-[15px] my-2 pt-[5px] pb-[3px]">
                     {navItems.map((item) => (
                         <button
                             key={item.name}
                             onClick={() => handleNavClick(item.href)}
-                            className={`px-3 py-2 text-[16px] font-normal transition-all duration-300 ease-out border-b-2 transform hover:scale-105 ${isActive(item.href)
+                            className={`text-[16px] mx-[15px] font-normal transition-all duration-300 ease-out border-b-2 transform hover:scale-105 ${isActive(item.href)
                                 ? "text-white border-white"
                                 : "text-gray-300 hover:text-white border-transparent hover:border-gray-400"
                                 }`}

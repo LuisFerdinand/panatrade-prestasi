@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, ExternalLink } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ExternalLink } from 'lucide-react';
 
 const BrandDetail = ({ brandId = "1", onBackClick, onExternalLinkClick }) => {
     // Brand data with external links and mobile images
@@ -32,7 +32,7 @@ const BrandDetail = ({ brandId = "1", onBackClick, onExternalLinkClick }) => {
             id: 3,
             name: "MIZUNO",
             src: "/assets/Logo1/miz-white.png",
-            backgroundImage: "/assets/BrandDetail/desktop/SPECS.jpg",
+            backgroundImage: "/assets/BrandDetail/desktop/MIZUNO.jpg",
             mobileImage: "/assets/BrandDetail/mobile/MIZUNO.jpg",
             description: [
                 "Mizuno is serious about sports. As the official distributor for Indonesia, Panatrade Caraka delivers high-performance products that give athletes an edge in their respective arenas, driving them forwards in the pursuit of success and personal growth. Together, we believe sports are essential for a better life. And striving for perfection is the essence of sport.",
@@ -78,6 +78,21 @@ const BrandDetail = ({ brandId = "1", onBackClick, onExternalLinkClick }) => {
     };
 
     const brand = brandData[brandId];
+
+    // Check if current brand is Mizuno
+    const isMizuno = brand && brand.name === "MIZUNO";
+
+    // Dynamic text color classes based on brand
+    const getTextColor = () => {
+        return isMizuno ? "text-white" : "text-gray-800";
+    };
+
+    const getButtonClasses = () => {
+        if (isMizuno) {
+            return "w-[180px] text-white font-[600] py-[16px] px-[32px] rounded-sm hover:bg-white hover:text-gray-900 transition-all duration-500 ease-in-out flex items-center justify-center space-x-3 group hover:shadow-xl transform";
+        }
+        return "w-[180px] text-gray-900 font-[600] py-[16px] px-[32px] rounded-sm hover:bg-gray-900 hover:text-white transition-all duration-500 ease-in-out flex items-center justify-center space-x-3 group hover:shadow-xl transform";
+    };
 
     // Handle case where brand is not found
     if (!brand) {
@@ -128,64 +143,38 @@ const BrandDetail = ({ brandId = "1", onBackClick, onExternalLinkClick }) => {
                             e.target.src = `data:image/svg+xml;base64,${btoa(`<svg width="800" height="400" xmlns="http://www.w3.org/2000/svg"><rect width="800" height="400" fill="#f3f4f6"/><text x="400" y="200" text-anchor="middle" fill="#1f2937" font-family="Arial" font-size="24" font-weight="bold">${brand.name}</text></svg>`)}`;
                         }}
                     />
-                    {/* <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                        <div className="text-center text-white px-4">
-                            <p className="text-sm font-medium tracking-wide uppercase mb-2">Brand</p>
-                            <h1 className="text-4xl font-bold mb-2">{brand.name}</h1>
-                            <p className="text-lg">Discover the excellence of {brand.name}</p>
-                        </div>
-                    </div> */}
                 </div>
 
                 {/* Mobile Content */}
-                <div className="px-4 py-8">
-                    {/* Brand Logo */}
-                    {/* <div className="flex justify-center mb-6">
-                        <img
-                            src={brand.src}
-                            alt={brand.name}
-                            className="h-24 w-auto object-contain"
-                            onError={(e) => {
-                                e.target.src = `data:image/svg+xml;base64,${btoa(`<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="#ffffff" rx="8"/><text x="100" y="110" text-anchor="middle" fill="#1f2937" font-family="Arial" font-size="16" font-weight="bold">${brand.name}</text></svg>`)}`;
-                            }}
-                        />
-                    </div> */}
-
+                <div className="py-8">
                     {/* Description */}
-                    <div className="space-y-4 mb-8">
-                        <p className="text-gray-800 text-base leading-relaxed">
+                    <div className="space-y-4 mb-[28px] mx-[10px] sm:mx-[15px] text-justify">
+                        <p className={`${getTextColor()} text-base leading-[1.7em] tracking-[1px]`}>
                             {brand.description[0]}
                         </p>
                         {brand.description[1] && (
-                            <p className="text-gray-800 text-base leading-relaxed">
+                            <p className={`${getTextColor()} text-base leading-[1.7em] tracking-[1px]`}>
                                 {brand.description[1]}
                             </p>
                         )}
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="space-y-4">
+                    <div className="space-y-4 flex flex-col items-center">
                         <button
                             onClick={handleShopNow}
-                            className="w-full bg-gray-900 text-white font-semibold py-4 px-6 rounded-lg hover:bg-gray-800 transition-all duration-300 flex items-center justify-center space-x-2 group"
+                            className={getButtonClasses()}
                         >
-                            <span>Visit Official Store</span>
-                            <ExternalLink size={18} className="group-hover:translate-x-1 transition-transform" />
-                        </button>
-
-                        <button
-                            onClick={handleBack}
-                            className="w-full bg-gray-200 text-gray-800 font-semibold py-4 px-6 rounded-lg hover:bg-gray-300 transition-all duration-300 flex items-center justify-center space-x-2 group"
-                        >
-                            <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-                            <span>Back to Home</span>
+                            <span className="text-[16px] group-hover:hidden transition-opacity duration-300">Shop Now</span>
+                            <span className="text-[16px] hidden group-hover:inline transition-opacity duration-300">Go!</span>
+                            <ArrowRight className="transition-transform duration-300 group-hover:translate-x-1" />
                         </button>
                     </div>
                 </div>
             </div>
 
             {/* Desktop Layout */}
-            <div className="hidden lg:block min-h-screen relative">
+            <div className="hidden lg:block min-h-screen relative mt-4">
                 {/* Background Image */}
                 <div className="absolute inset-0">
                     <img
@@ -205,15 +194,13 @@ const BrandDetail = ({ brandId = "1", onBackClick, onExternalLinkClick }) => {
 
                     {/* Right side - Content */}
                     <div className="w-1/2 flex flex-col">
-                        <div className="flex-1 p-8 xl:p-12 flex flex-col justify-center">
-                            {/* Brand Header */}
-
+                        <div className="flex-1 flex flex-col justify-center">
                             {/* Brand Logo */}
-                            <div className="flex justify-center">
+                            <div className="flex justify-start ml-8 -mb-24">
                                 <img
                                     src={brand.src}
                                     alt={brand.name}
-                                    className="object-contain mb-0 size-80"
+                                    className="object-contain mb-0 size-[300px]"
                                     onError={(e) => {
                                         e.target.src = `data:image/svg+xml;base64,${btoa(`<svg width="500" height="500" xmlns="http://www.w3.org/2000/svg"><rect width="500" height="500" fill="#ffffff" rx="8"/><text x="150" y="160" text-anchor="middle" fill="#1f2937" font-family="Arial" font-size="20" font-weight="bold">${brand.name}</text></svg>`)}`;
                                     }}
@@ -221,67 +208,29 @@ const BrandDetail = ({ brandId = "1", onBackClick, onExternalLinkClick }) => {
                             </div>
 
                             {/* Description */}
-                            <div className="space-y-6 mb-10">
-                                <p className="text-gray-800 text-lg leading-relaxed">
+                            <div className="space-y-6 mb-10 ml-[100px] mr-[80px]">
+                                <p className={`${getTextColor()} font-400 text-[17px] leading-[33px] tracking-[1px]`}>
                                     {brand.description[0]}
                                 </p>
                                 {brand.description[1] && (
-                                    <p className="text-gray-800 text-lg leading-relaxed">
+                                    <p className={`${getTextColor()} font-400 text-[17px] leading-[33px] tracking-[1px]`}>
                                         {brand.description[1]}
                                     </p>
                                 )}
                             </div>
 
                             {/* Action Buttons */}
-                            <div className="space-y-4">
+                            <div className="space-y-4 flex justify-center">
                                 <button
                                     onClick={handleShopNow}
-                                    className="w-full bg-gray-900 text-white font-semibold py-4 px-8 rounded-lg hover:bg-gray-600 transition-all duration-300 flex items-center justify-center space-x-3 group shadow-lg hover:shadow-xl"
+                                    className={getButtonClasses()}
                                 >
-                                    <span className="text-lg">Visit Official Store</span>
-                                    <ExternalLink size={20} className="group-hover:translate-x-1 transition-transform" />
-                                </button>
-
-                                <button
-                                    onClick={handleBack}
-                                    className="w-full bg-gray-400 text-gray-800 font-semibold py-4 px-8 rounded-lg hover:bg-gray-300 transition-all duration-300 flex items-center justify-center space-x-3 group"
-                                >
-                                    <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-                                    <span className="text-lg">Back to Home</span>
+                                    <span className="text-[16px] group-hover:hidden transition-opacity duration-300">Shop Now</span>
+                                    <span className="text-[16px] hidden group-hover:inline transition-opacity duration-300">Go!</span>
+                                    <ArrowRight className="transition-transform duration-300 group-hover:translate-x-1" />
                                 </button>
                             </div>
                         </div>
-
-                        {/* Why Choose Section */}
-                        {/* <div className="bg-gray-50 bg-opacity-90 p-8 xl:p-12">
-                            <h3 className="text-2xl font-semibold text-gray-800 mb-6">Why Choose {brand.name}?</h3>
-                            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                                <div>
-                                    <h4 className="font-semibold text-gray-700 mb-2">Quality Excellence</h4>
-                                    <p className="text-gray-600 text-sm">
-                                        Premium materials and innovative technology ensure superior performance in every product.
-                                    </p>
-                                </div>
-                                <div>
-                                    <h4 className="font-semibold text-gray-700 mb-2">Athlete Tested</h4>
-                                    <p className="text-gray-600 text-sm">
-                                        Our equipment is tested and trusted by professional athletes around the world.
-                                    </p>
-                                </div>
-                                <div>
-                                    <h4 className="font-semibold text-gray-700 mb-2">Innovation Focus</h4>
-                                    <p className="text-gray-600 text-sm">
-                                        Continuous research and development to bring you the latest in sports technology.
-                                    </p>
-                                </div>
-                                <div>
-                                    <h4 className="font-semibold text-gray-700 mb-2">Global Presence</h4>
-                                    <p className="text-gray-600 text-sm">
-                                        Available worldwide with dedicated support for athletes at every level.
-                                    </p>
-                                </div>
-                            </div>
-                        </div> */}
                     </div>
                 </div>
             </div>

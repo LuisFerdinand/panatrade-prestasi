@@ -1,4 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+
+// Import Swiper styles
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 
 // Import local images
 import sportmanshipDesktop from '../../assets/CoreValue/value1.jpg';
@@ -14,11 +21,8 @@ import socialResponsibilityMobile from '../../assets/CoreValue/valueM5.jpg';
 
 const CoreValue = () => {
     const [currentSlide, setCurrentSlide] = useState(0);
-    const [isDragging, setIsDragging] = useState(false);
-    const [startX, setStartX] = useState(0);
-    const [translateX, setTranslateX] = useState(0);
     const [contentVisible, setContentVisible] = useState(true);
-    const sliderRef = useRef(null);
+    const [imageLoaded, setImageLoaded] = useState(false);
 
     const coreValues = [
         {
@@ -78,8 +82,8 @@ const CoreValue = () => {
     const getColoredTitle = (title) => {
         const firstLetter = title.charAt(0);
         const restOfTitle = title.slice(1);
-
         let colorClass;
+        
         if (firstLetter === 'S') {
             if (title === 'SPORTMANSHIP') {
                 colorClass = 'text-red-500';
@@ -89,7 +93,7 @@ const CoreValue = () => {
         } else {
             colorClass = colorMap[firstLetter] || 'text-red-500';
         }
-
+        
         return (
             <>
                 <span className={colorClass}>{firstLetter}</span>
@@ -98,193 +102,156 @@ const CoreValue = () => {
         );
     };
 
-    const changeSlide = (newSlide) => {
-        if (newSlide !== currentSlide) {
-            setContentVisible(false);
-            setTimeout(() => {
-                setCurrentSlide(newSlide);
-                setContentVisible(true);
-            }, 250);
-        }
+    const handleSlideChange = (swiper) => {
+        setContentVisible(false);
+        setTimeout(() => {
+            setCurrentSlide(swiper.realIndex);
+            setContentVisible(true);
+        }, 250);
     };
-
-    // Mouse events
-    const handleMouseDown = (e) => {
-        setIsDragging(true);
-        setStartX(e.clientX);
-    };
-
-    const handleMouseMove = (e) => {
-        if (!isDragging) return;
-        
-        const currentX = e.clientX;
-        const diff = currentX - startX;
-        setTranslateX(diff);
-    };
-
-    const handleMouseUp = () => {
-        if (!isDragging) return;
-        
-        setIsDragging(false);
-        const threshold = 100;
-        
-        if (translateX > threshold && currentSlide > 0) {
-            changeSlide(currentSlide - 1);
-        } else if (translateX < -threshold && currentSlide < coreValues.length - 1) {
-            changeSlide(currentSlide + 1);
-        }
-        
-        setTranslateX(0);
-    };
-
-    // Touch events for mobile
-    const handleTouchStart = (e) => {
-        setIsDragging(true);
-        setStartX(e.touches[0].clientX);
-    };
-
-    const handleTouchMove = (e) => {
-        if (!isDragging) return;
-        
-        const currentX = e.touches[0].clientX;
-        const diff = currentX - startX;
-        setTranslateX(diff);
-    };
-
-    const handleTouchEnd = () => {
-        handleMouseUp();
-    };
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            if (!isDragging) {
-                changeSlide((currentSlide + 1) % coreValues.length);
-            }
-        }, 5000);
-
-        return () => clearInterval(interval);
-    }, [currentSlide, isDragging, coreValues.length]);
-
-    // Add global mouse event listeners
-    useEffect(() => {
-        if (isDragging) {
-            document.addEventListener('mousemove', handleMouseMove);
-            document.addEventListener('mouseup', handleMouseUp);
-            document.addEventListener('touchmove', handleTouchMove);
-            document.addEventListener('touchend', handleTouchEnd);
-        }
-
-        return () => {
-            document.removeEventListener('mousemove', handleMouseMove);
-            document.removeEventListener('mouseup', handleMouseUp);
-            document.removeEventListener('touchmove', handleTouchMove);
-            document.removeEventListener('touchend', handleTouchEnd);
-        };
-    }, [isDragging, startX, translateX]);
 
     return (
-        <div 
-            className="relative w-full h-[50vh] sm:h-[80vh] xl:h-[100vh] overflow-hidden cursor-grab active:cursor-grabbing select-none"
-            ref={sliderRef}
-            onMouseDown={handleMouseDown}
-            onTouchStart={handleTouchStart}
-        >
-            {/* Slider Container */}
-            <div 
-                className="flex h-full transition-transform duration-300 ease-out"
-                style={{
-                    transform: `translateX(calc(-${currentSlide * 100}% + ${translateX}px))`
+        <div className="relative w-full overflow-hidden">
+            <Swiper
+                modules={[Navigation, Pagination, Autoplay]}
+                spaceBetween={0}
+                slidesPerView={1}
+                loop={true}
+                autoplay={{
+                    delay: 5000,
+                    disableOnInteraction: false,
+                    pauseOnMouseEnter: true,
                 }}
+                speed={800}
+                navigation={{
+                    nextEl: '.swiper-button-next-custom',
+                    prevEl: '.swiper-button-prev-custom',
+                }}
+                pagination={{
+                    el: '.swiper-pagination-custom',
+                    clickable: true,
+                    bulletClass: 'swiper-pagination-bullet-custom',
+                    bulletActiveClass: 'swiper-pagination-bullet-active-custom',
+                }}
+                onSlideChange={handleSlideChange}
+                className="w-full"
             >
                 {coreValues.map((value, index) => (
-                    <div
-                        key={value.id}
-                        className="relative flex-shrink-0 w-full h-full"
-                        style={{ minWidth: '100%' }}
-                    >
-                        {/* Background Image - Mobile */}
-                        <div
-                            className="absolute inset-0 bg-cover bg-center bg-no-repeat md:hidden"
-                            style={{
-                                backgroundImage: `url(${value.image.mobile})`
-                            }}
-                        />
+                    <SwiperSlide key={value.id}>
+                        <div className="relative w-full">
+                            {/* Mobile Image */}
+                            <div className="block md:hidden">
+                                <img
+                                    src={value.image.mobile}
+                                    alt={value.title}
+                                    className="w-full h-auto object-cover"
+                                    onLoad={() => setImageLoaded(true)}
+                                />
+                            </div>
+                            
+                            {/* Desktop Image */}
+                            <div className="hidden md:block relative xl:max-h-[999px]">
+                                <img
+                                    src={value.image.desktop}
+                                    alt={value.title}
+                                    className="w-full h-auto object-cover"
+                                    onLoad={() => setImageLoaded(true)}
+                                />
+                                {/* Dark Overlay for desktop */}
+                                <div className="absolute inset-0 bg-black bg-opacity-50" />
+                            </div>
+                            
+                            {/* Content overlay for desktop */}
+                            <div className="absolute inset-0 hidden md:flex items-center justify-start z-10 mx-[50px]">
+                                <div 
+                                    className={`text-start text-white px-4 max-w-4xl transition-all duration-500 ease-out ${
+                                        contentVisible 
+                                            ? 'transform translate-y-0 opacity-100' 
+                                            : 'transform translate-y-8 opacity-0'
+                                    }`}
+                                >
+                                    <p className="text-[20px] font-[700] tracking-widest uppercase opacity-90 -mb-4 ml-2">
+                                        CORE VALUE
+                                    </p>
+                                    <h1 className="md:text-[83px] lg:text-[104px] 2xl:text-[143px] font-[800] leading-none uppercase tracking-wide">
+                                        {getColoredTitle(value.title)}
+                                    </h1>
+                                </div>
+                            </div>
 
-                        {/* Background Image - Desktop */}
-                        <div
-                            className="absolute inset-0 bg-cover bg-center bg-no-repeat hidden md:block"
-                            style={{
-                                backgroundImage: `url(${value.image.desktop})`
-                            }}
-                        />
-
-                        {/* Dark Overlay */}
-                        <div className="absolute hidden md:block inset-0 bg-black bg-opacity-50" />
-
-                        {/* Content with bottom-to-top animation */}
-                        <div className="relative z-10 max-w-7xl mx-auto hidden md:flex items-center justify-start h-full">
-                            <div 
-                                className={`text-start text-white px-4 max-w-4xl transition-all duration-500 ease-out ${
-                                    index === currentSlide && contentVisible 
-                                        ? 'transform translate-y-0 opacity-100' 
-                                        : 'transform translate-y-8 opacity-0'
-                                }`}
-                            >
-                                <p className="text-sm sm:text-base md:text-lg lg:text-xl font-medium tracking-widest uppercase mb-3 opacity-90">
+                            {/* Mobile content below image */}
+                            {/* <div className="block md:hidden p-6 bg-white">
+                                <p className="text-[16px] font-[700] tracking-widest uppercase opacity-70 mb-2 text-gray-600">
                                     CORE VALUE
                                 </p>
-                                <h1 className="md:text-[83px] lg:text-[104px] xl:text-[143px] font-bold leading-none uppercase tracking-wide">
+                                <h2 className="text-[32px] font-[800] leading-tight uppercase tracking-wide text-gray-900">
                                     {getColoredTitle(value.title)}
-                                </h1>
-                            </div>
+                                </h2>
+                                <p className="text-gray-600 mt-2 text-sm uppercase tracking-wide">
+                                    {value.description}
+                                </p>
+                            </div> */}
                         </div>
-                    </div>
+                    </SwiperSlide>
                 ))}
-            </div>
+            </Swiper>
 
-            {/* Navigation Dots */}
-            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3 z-20">
-                {coreValues.map((_, index) => (
-                    <button
-                        key={index}
-                        onClick={() => changeSlide(index)}
-                        className={`w-1 h-1 rounded-full transition-all duration-300 ${
-                            index === currentSlide
-                                ? 'bg-black scale-125'
-                                : 'bg-black bg-opacity-50 hover:bg-opacity-75'
-                        }`}
-                    />
-                ))}
-            </div>
-
-            {/* Progress Bar */}
-            <div className="absolute bottom-0 left-0 w-full h-1 bg-black bg-opacity-30 z-20">
-                <div
-                    className="h-full bg-white transition-all duration-300 ease-out"
-                    style={{
-                        width: `${((currentSlide + 1) / coreValues.length) * 100}%`
-                    }}
-                />
-            </div>
-
-            {/* Manual Navigation Arrows */}
-            <button
-                onClick={() => changeSlide(currentSlide === 0 ? coreValues.length - 1 : currentSlide - 1)}
-                className="absolute left-6 top-1/2 transform -translate-y-1/2 z-20 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full p-2 transition-all duration-300"
-            >
+            {/* Custom Navigation Arrows - Desktop only */}
+            <button className="swiper-button-prev-custom absolute left-6 top-1/2 transform -translate-y-1/2 z-20 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full p-2 transition-all duration-300 hidden md:block">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
             </button>
-
-            <button
-                onClick={() => changeSlide((currentSlide + 1) % coreValues.length)}
-                className="absolute right-6 top-1/2 transform -translate-y-1/2 z-20 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full p-2 transition-all duration-300"
-            >
+            <button className="swiper-button-next-custom absolute right-6 top-1/2 transform -translate-y-1/2 z-20 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full p-2 transition-all duration-300 hidden md:block">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
             </button>
+
+            {/* Custom Pagination Dots */}
+            <div className="swiper-pagination-custom absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3 z-20 md:bottom-8"></div>
+
+            {/* Progress Bar */}
+            {/* <div className="absolute bottom-0 left-0 w-full h-1 bg-black bg-opacity-30 z-20">
+                <div
+                    className="h-full bg-white md:bg-white transition-all duration-300 ease-out"
+                    style={{
+                        width: `${((currentSlide + 1) / coreValues.length) * 100}%`
+                    }}
+                />
+            </div> */}
+
+            <style jsx>{`
+                .swiper-pagination-bullet-custom {
+                    width: 4px !important;
+                    height: 4px !important;
+                    background: rgba(0, 0, 0, 0.5) !important;
+                    border-radius: 50% !important;
+                    opacity: 1 !important;
+                    margin: 0 6px !important;
+                    transition: all 0.3s ease !important;
+                    cursor: pointer !important;
+                }
+                
+                .swiper-pagination-bullet-active-custom {
+                    background: black !important;
+                    transform: scale(1.25) !important;
+                }
+                
+                .swiper-pagination-bullet-custom:hover {
+                    background: rgba(0, 0, 0, 0.75) !important;
+                }
+
+                @media (max-width: 768px) {
+                    .swiper-pagination-bullet-custom {
+                        background: rgba(0, 0, 0, 0.3) !important;
+                    }
+                    
+                    .swiper-pagination-bullet-active-custom {
+                        background: rgba(0, 0, 0, 0.8) !important;
+                    }
+                }
+            `}</style>
         </div>
     );
 };
