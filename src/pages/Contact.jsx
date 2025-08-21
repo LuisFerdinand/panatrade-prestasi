@@ -1,41 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReCAPTCHAComponent from 'react-google-recaptcha';
 
-// Mock ReCAPTCHA component for demonstration
-const ReCAPTCHA = ({ sitekey, onChange, onExpired, ref }) => {
-    const [verified, setVerified] = useState(false);
-    
-    const handleVerify = () => {
-        setVerified(!verified);
-        onChange(verified ? null : 'mock-token');
-    };
-    
-    React.useImperativeHandle(ref, () => ({
-        reset: () => {
-            setVerified(false);
-            onChange(null);
-        }
-    }));
-    
+const ReCAPTCHA = React.forwardRef(({ sitekey, onChange, onExpired, onErrored }, ref) => {
     return (
-        <div className="inline-block border border-gray-300 p-4 bg-gray-50 rounded">
-            <div className="flex items-center space-x-2">
-                <input
-                    type="checkbox"
-                    checked={verified}
-                    onChange={handleVerify}
-                    className="w-4 h-4"
-                />
-                <span className="text-sm">I'm not a robot</span>
-                <div className="w-8 h-8 bg-blue-500 rounded flex items-center justify-center text-white text-xs">
-                    rC
-                </div>
-            </div>
-        </div>
+        <ReCAPTCHAComponent
+            ref={ref}
+            sitekey={sitekey}
+            onChange={onChange}
+            onExpired={onExpired}
+            onErrored={onErrored}
+        />
     );
-};
+});
 
 const Contact = () => {
     const [isVerified, setIsVerified] = useState(false);
+    const [recaptchaToken, setRecaptchaToken] = useState(null);
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -44,103 +24,224 @@ const Contact = () => {
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitStatus, setSubmitStatus] = useState('');
+    const [emailJsLoaded, setEmailJsLoaded] = useState(false);
     
     const recaptchaRef = useRef(null);
-
-    // Replace with your actual reCAPTCHA site key from Google reCAPTCHA console
-    const RECAPTCHA_SITE_KEY = "test"; // This is Google's test key, replace with yours
     
-    // Replace with your EmailJS credentials
-    const EMAILJS_SERVICE_ID = "service_1kwe0iw";
-    const EMAILJS_TEMPLATE_ID = "template_be5w3g2";
-    const EMAILJS_PUBLIC_KEY = "1Hzn3cIba12k3xxg_";
-
-    // Mock EmailJS for demonstration
+    // Configuration - Using environment variables
+    const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || "6Lfx3KQrAAAAALAhwdVCpitLJl3KGNzG3UR3JUep";
+    const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || "service_1kwe0iw";
+    const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "template_be5w3g2";
+    const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "1Hzn3cIba12k3xxg_";
+    const API_URL = import.meta.env.VITE_API_URL || (
+        import.meta.env.DEV 
+        ? 'http://localhost:3001' 
+        : ''
+    );
+    
+    // Load EmailJS script dynamically
     useEffect(() => {
-        // In real implementation, load EmailJS script here
-        window.emailjs = {
-            init: () => {},
-            send: async () => ({ status: 200 })
+        const loadEmailJS = () => {
+            if (window.emailjs) {
+                window.emailjs.init(EMAILJS_PUBLIC_KEY);
+                setEmailJsLoaded(true);
+                return;
+            }
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
+            script.async = true;
+            
+            script.onload = () => {
+                window.emailjs.init(EMAILJS_PUBLIC_KEY);
+                setEmailJsLoaded(true);
+            };
+            
+            script.onerror = () => {
+                console.error('Failed to load EmailJS');
+                setEmailJsLoaded(false);
+            };
+            
+            document.head.appendChild(script);
         };
-    }, []);
-
-    const handleRecaptchaChange = (value) => {
-        if (value) {
-            setIsVerified(true);
-        } else {
-            setIsVerified(false);
+        loadEmailJS();
+        
+        return () => {
+            const existingScript = document.querySelector('script[src*="emailjs"]');
+            if (existingScript) {
+                existingScript.remove();
+            }
+        };
+    }, [EMAILJS_PUBLIC_KEY]);
+    
+    const handleRecaptchaChange = (token) => {
+        setRecaptchaToken(token);
+        setIsVerified(!!token);
+        
+        if (token && submitStatus === 'error') {
+            setSubmitStatus('');
         }
     };
-
+    
+    const handleRecaptchaExpired = () => {
+        setRecaptchaToken(null);
+        setIsVerified(false);
+    };
+    
+    const handleRecaptchaError = () => {
+        setRecaptchaToken(null);
+        setIsVerified(false);
+        alert('reCAPTCHA verification failed. Please try again.');
+    };
+    
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
             [name]: value
         }));
+        
+        if (submitStatus === 'error') {
+            setSubmitStatus('');
+        }
     };
-
+    
+    const validateForm = () => {
+        const errors = [];
+        
+        if (!formData.firstName.trim()) errors.push('First name is required');
+        if (!formData.lastName.trim()) errors.push('Last name is required');
+        if (!formData.email.trim()) errors.push('Email is required');
+        
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (formData.email && !emailRegex.test(formData.email)) {
+            errors.push('Please enter a valid email address');
+        }
+        
+        if (!isVerified || !recaptchaToken) {
+            errors.push('Please complete the reCAPTCHA verification');
+        }
+        
+        if (!emailJsLoaded) {
+            errors.push('Email service is not ready. Please wait and try again.');
+        }
+        
+        return errors;
+    };
+    
+    // Function to verify reCAPTCHA token on backend
+    const verifyRecaptchaToken = async (token) => {
+        try {
+            const apiEndpoint = API_URL 
+                ? `${API_URL}/api/verify-recaptcha`
+                : '/api/verify-recaptcha'; // Relative URL for Vercel
+                
+            const response = await fetch(apiEndpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ recaptchaToken: token }),
+            });
+            
+            const result = await response.json();
+            return result.success;
+        } catch (error) {
+            console.error('reCAPTCHA verification error:', error);
+            return false;
+        }
+    };
+    
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        if (!formData.firstName || !formData.lastName || !formData.email) {
-            alert('Please fill in all required fields');
+        const validationErrors = validateForm();
+        if (validationErrors.length > 0) {
+            alert(validationErrors.join('\n'));
             return;
         }
-
-        if (!isVerified) {
-            alert('Please complete the reCAPTCHA verification before submitting');
-            return;
-        }
-
+        
         setIsSubmitting(true);
         setSubmitStatus('');
-
+        
         try {
-            // Prepare template parameters for EmailJS
+            // Verify reCAPTCHA on backend first
+            const isRecaptchaValid = await verifyRecaptchaToken(recaptchaToken);
+            if (!isRecaptchaValid) {
+                throw new Error('reCAPTCHA verification failed');
+            }
+            
+            // Prepare email template parameters
             const templateParams = {
                 from_name: `${formData.firstName} ${formData.lastName}`,
                 from_email: formData.email,
-                to_email: 'ferdinandluis88@example.com', // Replace with your actual email
+                to_email: 'ferdinandluis88@gmail.com',
                 message: formData.message || 'No message provided',
-                reply_to: formData.email
+                reply_to: formData.email,
+                recaptcha_token: recaptchaToken
             };
-
+            
             // Send email using EmailJS
             const response = await window.emailjs.send(
                 EMAILJS_SERVICE_ID,
                 EMAILJS_TEMPLATE_ID,
-                templateParams,
-                EMAILJS_PUBLIC_KEY
+                templateParams
             );
-
+            
             if (response.status === 200) {
                 setSubmitStatus('success');
                 
-                // Reset form
+                // Reset form after successful submission
                 setFormData({
                     firstName: '',
                     lastName: '',
                     email: '',
                     message: ''
                 });
-                setIsVerified(false);
-                recaptchaRef.current?.reset();
+                
+                resetRecaptcha();
+                
+                // Scroll to success message
+                setTimeout(() => {
+                    const successMessage = document.querySelector('.bg-green-100');
+                    if (successMessage) {
+                        successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 100);
+            } else {
+                throw new Error(`EmailJS returned status: ${response.status}`);
             }
         } catch (error) {
-            console.error('EmailJS Error:', error);
+            console.error('Email sending failed:', error);
             setSubmitStatus('error');
+            
+            if (error.message.includes('reCAPTCHA')) {
+                alert('reCAPTCHA verification failed. Please try again.');
+                resetRecaptcha();
+            }
         } finally {
             setIsSubmitting(false);
         }
     };
-
+    
     const resetRecaptcha = () => {
         setIsVerified(false);
-        setSubmitStatus('');
-        recaptchaRef.current?.reset();
+        setRecaptchaToken(null);
+        if (recaptchaRef.current) {
+            recaptchaRef.current.reset();
+        }
     };
-
+    
+    const resetForm = () => {
+        setFormData({
+            firstName: '',
+            lastName: '',
+            email: '',
+            message: ''
+        });
+        setSubmitStatus('');
+        resetRecaptcha();
+    };
+    
     return (
         <div className="min-h-screen bg-white flex items-center justify-center">
             <div className="w-full max-w-7xl mx-auto px-6 py-20">
@@ -152,7 +253,6 @@ const Contact = () => {
                                 CONTACT US
                             </h1>
                         </div>
-
                         <div className="space-y-6">
                             <div>
                                 <h3 className="text-lg font-semibold text-black mb-4">
@@ -167,21 +267,23 @@ const Contact = () => {
                             </div>
                         </div>
                     </div>
-
+                    
                     {/* Right Side - Contact Form */}
                     <div className="space-y-6">
                         {submitStatus === 'success' && (
-                            <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-md">
-                                Thank you for your message! We'll get back to you soon.
+                            <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-md">
+                                <h4 className="font-semibold">Message Sent Successfully!</h4>
+                                <p>Thank you for your message. We'll get back to you soon.</p>
                             </div>
                         )}
                         
                         {submitStatus === 'error' && (
-                            <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-md">
-                                Sorry, there was an error sending your message. Please try again.
+                            <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-md">
+                                <h4 className="font-semibold">Error Sending Message</h4>
+                                <p>Sorry, there was an error sending your message. Please check your internet connection and try again.</p>
                             </div>
                         )}
-
+                        
                         <form onSubmit={handleSubmit} className="space-y-6">
                             {/* Name Fields */}
                             <div>
@@ -196,8 +298,9 @@ const Contact = () => {
                                             value={formData.firstName}
                                             onChange={handleInputChange}
                                             className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition-all duration-200"
-                                            placeholder=""
+                                            placeholder="First name"
                                             required
+                                            disabled={isSubmitting}
                                         />
                                         <p className="text-xs text-gray-500 mt-1">First</p>
                                     </div>
@@ -208,14 +311,15 @@ const Contact = () => {
                                             value={formData.lastName}
                                             onChange={handleInputChange}
                                             className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition-all duration-200"
-                                            placeholder=""
+                                            placeholder="Last name"
                                             required
+                                            disabled={isSubmitting}
                                         />
                                         <p className="text-xs text-gray-500 mt-1">Last</p>
                                     </div>
                                 </div>
                             </div>
-
+                            
                             {/* Email Field */}
                             <div>
                                 <label className="block text-sm font-medium text-black mb-3">
@@ -227,11 +331,12 @@ const Contact = () => {
                                     value={formData.email}
                                     onChange={handleInputChange}
                                     className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition-all duration-200"
-                                    placeholder=""
+                                    placeholder="your@email.com"
                                     required
+                                    disabled={isSubmitting}
                                 />
                             </div>
-
+                            
                             {/* Message Field */}
                             <div>
                                 <label className="block text-sm font-medium text-black mb-3">
@@ -243,11 +348,12 @@ const Contact = () => {
                                     onChange={handleInputChange}
                                     rows={6}
                                     className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition-all duration-200 resize-vertical"
-                                    placeholder=""
+                                    placeholder="Your message here..."
+                                    disabled={isSubmitting}
                                 ></textarea>
                             </div>
-
-                            {/* reCAPTCHA - Now positioned below message field */}
+                            
+                            {/* reCAPTCHA */}
                             <div>
                                 <label className="block text-sm font-medium text-black mb-3">
                                     Verification <span className="text-red-500">*</span>
@@ -257,7 +363,8 @@ const Contact = () => {
                                         ref={recaptchaRef}
                                         sitekey={RECAPTCHA_SITE_KEY}
                                         onChange={handleRecaptchaChange}
-                                        onExpired={() => setIsVerified(false)}
+                                        onExpired={handleRecaptchaExpired}
+                                        onErrored={handleRecaptchaError}
                                     />
                                 </div>
                                 {!isVerified && (
@@ -266,16 +373,16 @@ const Contact = () => {
                                     </p>
                                 )}
                             </div>
-
-                            {/* Submit Button */}
-                            <div className="flex items-center space-x-4">
+                            
+                            {/* Submit Buttons */}
+                            <div className="flex flex-wrap items-center gap-4">
                                 <button
                                     type="submit"
-                                    disabled={isSubmitting || !isVerified}
+                                    disabled={isSubmitting || !isVerified || !emailJsLoaded}
                                     className={`px-8 py-3 rounded-md font-medium transition-colors duration-200 ${
-                                        isSubmitting || !isVerified
+                                        isSubmitting || !isVerified || !emailJsLoaded
                                             ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                                            : 'bg-gray-200 text-black hover:bg-gray-300'
+                                            : 'bg-gray-200 text-black hover:bg-gray-300 hover:shadow-md'
                                     }`}
                                 >
                                     {isSubmitting ? 'SENDING...' : 'SUBMIT'}
@@ -283,8 +390,18 @@ const Contact = () => {
                                 
                                 <button
                                     type="button"
+                                    onClick={resetForm}
+                                    disabled={isSubmitting}
+                                    className="px-6 py-3 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Reset Form
+                                </button>
+                                
+                                <button
+                                    type="button"
                                     onClick={resetRecaptcha}
-                                    className="text-sm text-gray-600 hover:text-gray-800 underline"
+                                    disabled={isSubmitting}
+                                    className="text-sm text-gray-600 hover:text-gray-800 underline disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     Reset reCAPTCHA
                                 </button>

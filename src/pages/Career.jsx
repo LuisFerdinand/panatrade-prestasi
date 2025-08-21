@@ -10,11 +10,39 @@ const Career = () => {
                     className="relative w-full max-w-[1920px] mx-auto overflow-hidden shadow-lg"
                     style={{ height: '100%' }}
                 >
+                    {/* Desktop Image - Hidden on mobile */}
                     <img
                         src="/assets/Career.jpg"
                         alt="Career opportunities at Panatrade Prestasi"
-                        className="w-full h-full object-cover"
+                        className="hidden md:block w-full h-full object-cover"
                     />
+                    
+                    {/* Mobile Image - Hidden on desktop */}
+                    <img
+                        src="/assets/Career-mobile.jpg"
+                        alt="Career opportunities at Panatrade Prestasi"
+                        className="block md:hidden w-full h-full object-cover"
+                    />
+                    
+                    {/* Alternative approach using picture element for better performance */}
+                    {/* 
+                    <picture>
+                        <source 
+                            media="(min-width: 768px)" 
+                            srcSet="/assets/Career.jpg"
+                        />
+                        <source 
+                            media="(max-width: 767px)" 
+                            srcSet="/assets/Career-mobile.jpg"
+                        />
+                        <img
+                            src="/assets/Career.jpg"
+                            alt="Career opportunities at Panatrade Prestasi"
+                            className="w-full h-full object-cover"
+                        />
+                    </picture>
+                    */}
+                    
                     {/* <div className="absolute inset-0 bg-black bg-opacity-40 flex items-end justify-center">
                         <div className="text-center text-white">
                             <p className="text-xs sm:text-sm md:text-base lg:text-l xl:text-lg font-medium tracking-wide uppercase">Career</p>
@@ -81,19 +109,8 @@ const Career = () => {
                             ))}
                         </div>
                     ) : (
-                        <div className="text-center py-16 rounded-lg">
-                            <div className="mb-4">
-                                <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6.94M8 6V4H6a2 2 0 00-2 2v12a2 2 0 002 2h.93" />
-                                </svg>
-                            </div>
-                            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Jobs Available</h3>
-                            <p className="text-gray-600 mb-4">
-                                We don't have any open positions at the moment, but we're always looking for talented individuals.
-                            </p>
-                            <p className="text-sm text-gray-500">
-                                Check back soon or send us your resume for future opportunities.
-                            </p>
+                        <div className="py-16 rounded-lg">
+                            <h3 className="text-[24px] font-semibold text-gray-900 mb-2">No Jobs Found.</h3>
                         </div>
                     )}
                 </div>

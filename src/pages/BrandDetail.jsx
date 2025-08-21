@@ -38,7 +38,7 @@ const BrandDetail = ({ brandId = "1", onBackClick, onExternalLinkClick }) => {
                 "Mizuno is serious about sports. As the official distributor for Indonesia, Panatrade Caraka delivers high-performance products that give athletes an edge in their respective arenas, driving them forwards in the pursuit of success and personal growth. Together, we believe sports are essential for a better life. And striving for perfection is the essence of sport.",
                 "Taking inspiration from their Japanese heritage, Mizuno bring attention to detail and discipline to product development. The result is high-quality sports apparel that elevates performance and contributes to overall well-being. Particularly in running, badminton, tennis, volleyball and soccer, they're frontrunners in the race for excellence."
             ],
-            externalUrl: "https://idn.mizuno.com/",
+            externalUrl: "https://linktr.ee/mizuno_indonesia",
         },
         4: {
             id: 4,
@@ -140,7 +140,7 @@ const BrandDetail = ({ brandId = "1", onBackClick, onExternalLinkClick }) => {
                         alt={`${brand.name} mobile`}
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                            e.target.src = `data:image/svg+xml;base64,${btoa(`<svg width="800" height="400" xmlns="http://www.w3.org/2000/svg"><rect width="800" height="400" fill="#f3f4f6"/><text x="400" y="200" text-anchor="middle" fill="#1f2937" font-family="Arial" font-size="24" font-weight="bold">${brand.name}</text></svg>`)}`;
+                            e.target.src = `data:image/svg+xml;base64,${btoa(`<svg width="300" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="800" height="400" fill="#f3f4f6"/><text x="400" y="200" text-anchor="middle" fill="#1f2937" font-family="Arial" font-size="24" font-weight="bold">${brand.name}</text></svg>`)}`;
                         }}
                     />
                 </div>
@@ -196,7 +196,7 @@ const BrandDetail = ({ brandId = "1", onBackClick, onExternalLinkClick }) => {
                     <div className="w-1/2 flex flex-col">
                         <div className="flex-1 flex flex-col justify-center">
                             {/* Brand Logo */}
-                            <div className="flex justify-start ml-8 -mb-24">
+                            <div className="flex justify-start ml-4 -mb-20">
                                 <img
                                     src={brand.src}
                                     alt={brand.name}
