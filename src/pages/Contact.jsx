@@ -36,7 +36,7 @@ const Contact = () => {
     const API_URL = import.meta.env.VITE_API_URL || (
         import.meta.env.DEV 
         ? 'http://localhost:3001' 
-        : ''
+        : 'https://panatrade-prestasi.vercel.app/'
     );
     
     // Load EmailJS script dynamically
